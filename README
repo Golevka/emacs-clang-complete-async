@@ -3,9 +3,11 @@ uses libclang to parse the source code and provide completion candidates to
 auto-complete (http://cx4a.org/software/auto-complete).
 
 This plugin is not implemented in pure elisp, it is made up of a client part
-(auto-complete-clang-async.el, written in elisp) and a server part
-(clang-complete binary, written in C), they works cooperately in an asynchonous
-C-S fashion.
+(auto-complete-clang-async.el, written in elisp, I just made some slim
+modification to BrainJ's auto-complete-clang.el
+https://github.com/brianjcj/auto-complete-clang) and a server part
+(clang-complete binary, written in C), they work cooperately in asynchonous
+client-server fashion.
 
 
 *SETUP: Compile the server part (clang-complete binary) first by typing `make`,
