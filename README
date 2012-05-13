@@ -1,0 +1,59 @@
+emacs-clang-complete-async is an emacs plugin to complete C and C++ code, it
+uses libclang to parse the source code and provide completion candidates to
+auto-complete (http://cx4a.org/software/auto-complete).
+
+This plugin is not implemented in pure elisp, it is made up of a client part
+(auto-complete-clang-async.el, written in elisp) and a server part
+(clang-complete binary, written in C), they works cooperately in an asynchonous
+C-S fashion.
+
+
+*SETUP: Compile the server part (clang-complete binary) first by typing `make`,
+then copy auto-complete-clang-async.el and the previously compiled
+clang-complete executable to ~/.emacs.d/, and add the following code to your
+.emacs file.
+
+
+(require 'auto-complete-clang-async)
+
+(defun ac-cc-mode-setup ()
+  (setq ac-sources '(ac-source-clang-async))
+  (launch-completion-proc)
+)
+
+(defun my-ac-config ()
+  (add-hook 'c-mode-common-hook 'ac-cc-mode-setup)
+  (add-hook 'auto-complete-mode-hook 'ac-common-setup)
+  (global-auto-complete-mode t))
+
+(my-ac-config)
+
+
+Now emacs-clang-complete-async will show completion candidates automatically
+when you type in C or C++ mode.
+
+
+*USAGE:
+
+This plugin fades in emacs C/C++ mode and provides candidates
+automatically while you typing code, if you want to add parameters to clang
+(libclang, actually), such as -Ipath, just call ac-clang-set-cflags
+interactively or set the value of ac-clang-flags in .emacs or .dir-locals.el,
+maybe you need an explicit call to ac-clang-update-cmdlineargs to make the
+change to cflags take effect, which is one of the niggle part of this one T T
+
+Another annoying thing is that when you exit emacs while there's any buffer in
+C/C++ mode open, it would confirm if to kill all running clang-complete
+processes. Maybe some kinds of function hook could handle this problem.
+
+
+*NOTE:
+
+Most code of auto-complete-clang-async.el is taken from Brain Jiang's
+auto-complete-clang.el, The only difference between this one and bj's
+ac-clang-complete is: This one interacts with a process geared with libclang to
+retrieve completion candidates instead of calling clang process, which is way
+faster, and the asynchonous nature of our C-S based working model won't block
+the editor while parsing source code and calculating completion candidates,
+which provides a "smooth" experience of editing.
+
