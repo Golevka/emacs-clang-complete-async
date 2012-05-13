@@ -32,7 +32,7 @@ clang-complete executable to ~/.emacs.d/, and add the following code to your
 
 
 Now emacs-clang-complete-async will show completion candidates automatically
-when you type in C or C++ mode.
+when you type as usual in C or C++ mode.
 
 
 *USAGE:
