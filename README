@@ -44,18 +44,18 @@ interactively or set the value of ac-clang-flags in .emacs or .dir-locals.el,
 maybe you need an explicit call to ac-clang-update-cmdlineargs to make changes 
 to cflags take effect, which is one of the niggle part of this one T T
 
-Another annoying thing is that when you exit emacs while there's any buffer in
+Another annoying thing is that when you exit emacs while leaving any buffer in
 C/C++ mode open, it would confirm if to kill all running clang-complete
-processes. Maybe some kinds of function hook could handle this problem.
+processes. Maybe some kinds of function hook could solve this problem.
 
 
 *NOTE:
 
-Most code of auto-complete-clang-async.el is taken from Brain Jiang's
+Most code of auto-complete-clang-async.el is taken from brainjcj's
 auto-complete-clang.el, The only difference between this one and bj's
 ac-clang-complete is: This one interacts with a process geared with libclang to
 retrieve completion candidates instead of calling clang process, which is way
-faster, and the asynchonous nature of our C-S based working model won't block
+slower, and the asynchonous nature of our C-S based working model won't block
 the editor while parsing source code and calculating completion candidates,
 which provides a "smooth" experience of editing.
 
