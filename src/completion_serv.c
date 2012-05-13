@@ -22,11 +22,11 @@ static void __copy_cmdlineArgs(int argc, char *argv[], completion_Session *sessi
 }
 
 /* Initialize basic information for completion, such as source filename, initial source 
-   buffer and command line arguments to pass to clang */
+   buffer and command line arguments for clang */
 void 
 __initialize_completionSession(int argc, char *argv[], completion_Session *session)
 {
-    /* filename shall be the last sessioneter */
+    /* filename shall be the last parameter */
     session->src_filename = argv[argc - 1];
     session->src_length = 0;      /* we haven't read any source code yet. */
     session->buffer_capacity = INITIAL_SRC_BUFFER_SIZE;
