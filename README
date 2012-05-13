@@ -4,7 +4,7 @@ auto-complete (http://cx4a.org/software/auto-complete).
 
 This plugin is not implemented in pure elisp, it is made up of a client part
 (auto-complete-clang-async.el, written in elisp, I just made some slim
-modification to BrainJ's auto-complete-clang.el
+modification to brainjcj's auto-complete-clang.el
 https://github.com/brianjcj/auto-complete-clang) and a server part
 (clang-complete binary, written in C), they work cooperately in asynchonous
 client-server fashion.
@@ -41,8 +41,8 @@ This plugin fades in emacs C/C++ mode and provides candidates
 automatically while you typing code, if you want to add parameters to clang
 (libclang, actually), such as -Ipath, just call ac-clang-set-cflags
 interactively or set the value of ac-clang-flags in .emacs or .dir-locals.el,
-maybe you need an explicit call to ac-clang-update-cmdlineargs to make the
-change to cflags take effect, which is one of the niggle part of this one T T
+maybe you need an explicit call to ac-clang-update-cmdlineargs to make changes 
+to cflags take effect, which is one of the niggle part of this one T T
 
 Another annoying thing is that when you exit emacs while there's any buffer in
 C/C++ mode open, it would confirm if to kill all running clang-complete
