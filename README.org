@@ -1,7 +1,7 @@
 * Introduction
 
 emacs-clang-complete-async is an emacs extension to complete C and C++ code, 
-it uses libclang to parse the source code and provide completion candidates to
+it uses libclang to parse the source code on the fly and provides completion candidates to
 auto-complete (http://cx4a.org/software/auto-complete).
 
 [[https://github.com/Golevka/emacs-clang-complete-async/raw/master/screenshots/showcase.png]]
