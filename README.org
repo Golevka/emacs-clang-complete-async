@@ -1,0 +1,65 @@
+* Introduction
+
+emacs-clang-complete-async is an emacs extension to complete C and C++ code, 
+it uses libclang to parse the source code and provide completion candidates to
+auto-complete (http://cx4a.org/software/auto-complete).
+
+[[https://github.com/Golevka/emacs-clang-complete-async/raw/master/screenshots/showcase.png]]
+
+This extension is not implemented in pure elisp, it is made up of a client part
+(auto-complete-clang-async.el, written in elisp) and a server part
+(clang-complete binary, written in C), they work cooperately in asynchonous
+client-server fashion.
+
+
+* Setup
+
+Compile the server part (clang-complete binary) first by executing =make=,
+then copy auto-complete-clang-async.el and the previously compiled
+clang-complete executable to ~/.emacs.d/, and add the following code to your
+.emacs file.
+
+
+#+BEGIN_SRC elisp
+(require 'auto-complete-clang-async)
+
+(defun ac-cc-mode-setup ()
+  (setq ac-sources '(ac-source-clang-async))
+  (launch-completion-proc)
+)
+
+(defun my-ac-config ()
+  (add-hook 'c-mode-common-hook 'ac-cc-mode-setup)
+  (add-hook 'auto-complete-mode-hook 'ac-common-setup)
+  (global-auto-complete-mode t))
+
+(my-ac-config)
+#+END_SRC
+
+Now emacs-clang-complete-async will show completion candidates automatically
+when you type as usual in C or C++ mode.
+
+
+* Usage
+
+This extension fades in emacs C/C++ mode and provides candidates
+automatically while you typing code, if you want to add parameters to clang
+(libclang, actually), such as -Ipath, just call ac-clang-set-cflags
+interactively or set the value of ac-clang-flags in .emacs or .dir-locals.el,
+maybe you need an explicit call to ac-clang-update-cmdlineargs to make changes 
+to cflags take effect, which is one of the niggling part of it T T
+
+Another annoying thing is that when you exit emacs while leaving any buffer in
+C/C++ mode open, emacs would confirm if to kill all running clang-complete
+processes. Maybe some kinds of function hook could solve this problem.
+
+
+* Note
+
+Most code of auto-complete-clang-async.el is taken from brainjcj's
+auto-complete-clang.el, The only difference between this one and bj's
+ac-clang-complete is: This one interacts with a process geared with libclang to
+retrieve completion candidates instead of calling clang process, which is way
+slower, and the asynchonous nature of our C-S based working model won't block
+the editor while parsing source code and resolving completion candidates,
+which provides a "smooth" coding experience.
