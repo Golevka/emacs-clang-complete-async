@@ -1,8 +1,8 @@
-emacs-clang-complete-async is an emacs plugin to complete C and C++ code, it
-uses libclang to parse the source code and provide completion candidates to
+emacs-clang-complete-async is an emacs extension to complete C and C++ code, 
+it uses libclang to parse the source code and provide completion candidates to
 auto-complete (http://cx4a.org/software/auto-complete).
 
-This plugin is not implemented in pure elisp, it is made up of a client part
+This extension is not implemented in pure elisp, it is made up of a client part
 (auto-complete-clang-async.el, written in elisp, I just made some slim
 modification to brainjcj's auto-complete-clang.el
 https://github.com/brianjcj/auto-complete-clang) and a server part
@@ -37,15 +37,15 @@ when you type as usual in C or C++ mode.
 
 *USAGE:
 
-This plugin fades in emacs C/C++ mode and provides candidates
+This extension fades in emacs C/C++ mode and provides candidates
 automatically while you typing code, if you want to add parameters to clang
 (libclang, actually), such as -Ipath, just call ac-clang-set-cflags
 interactively or set the value of ac-clang-flags in .emacs or .dir-locals.el,
 maybe you need an explicit call to ac-clang-update-cmdlineargs to make changes 
-to cflags take effect, which is one of the niggle part of this one T T
+to cflags take effect, which is one of the niggling part of it T T
 
 Another annoying thing is that when you exit emacs while leaving any buffer in
-C/C++ mode open, it would confirm if to kill all running clang-complete
+C/C++ mode open, emacs would confirm if to kill all running clang-complete
 processes. Maybe some kinds of function hook could solve this problem.
 
 
@@ -56,6 +56,6 @@ auto-complete-clang.el, The only difference between this one and bj's
 ac-clang-complete is: This one interacts with a process geared with libclang to
 retrieve completion candidates instead of calling clang process, which is way
 slower, and the asynchonous nature of our C-S based working model won't block
-the editor while parsing source code and calculating completion candidates,
-which provides a "smooth" experience of editing.
+the editor while parsing source code and resolving completion candidates,
+which provides a "smooth" coding experience.
 
