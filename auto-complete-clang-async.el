@@ -322,7 +322,10 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 ;;
 (defun send-source-code (proc)  
     (process-send-string 
-     proc (format "source_length:%d\n" (buffer-size)))
+     proc (format "source_length:%d\n" 
+                  (length (string-as-unibyte   ; fix non-ascii character problem
+                           (buffer-substring-no-properties (point-min) (point-max)))
+                          )))
     (process-send-string 
      proc (buffer-substring-no-properties (point-min) (point-max)))
     (process-send-string proc "\n\n")) ; bullet proof :-)
