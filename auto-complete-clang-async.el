@@ -454,11 +454,11 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 
   ;; hooks to make the clang-complete server shutdown when the buffer is killed. 
   ;; and reparse the source file automatically when the buffer is saved.
-  (make-local-hook 'kill-buffer-hook)
+  ;; this hook is buffer local
   (add-hook 'kill-buffer-hook 
             (lambda () 
               (if completion-proc 
-                  (send-shutdown-command completion-proc))))
+                  (send-shutdown-command completion-proc))) nil t)
   (add-hook 'before-save-hook
             (lambda ()
               (if completion-proc 
