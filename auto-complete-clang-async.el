@@ -159,7 +159,6 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
             (t
              "c++"))))
 
-
 (defsubst ac-clang-build-args ()
   (append (list "-x" (ac-clang-lang-option))
           ac-clang-flags
@@ -455,19 +454,15 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 
   ;; hooks to make the clang-complete server shutdown when the buffer is killed. 
   ;; and reparse the source file automatically when the buffer is saved.
-
-  ;; this hook is buffer local
+  (make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 
             (lambda () 
               (if completion-proc 
-                  (send-shutdown-command completion-proc))) nil t)
-
-
+                  (send-shutdown-command completion-proc))))
   (add-hook 'before-save-hook
             (lambda ()
               (if completion-proc 
                   (send-reparse-request completion-proc))))
-
 
   (local-set-key (kbd ".") 'ac-clang-async-preemptive)
   (local-set-key (kbd ":") 'ac-clang-async-preemptive)
