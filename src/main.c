@@ -26,12 +26,9 @@ int main(int argc, char *argv[])
 {
     completion_Session session;
     startup_completionSession(argc, argv, &session);
-    __dump_session(&session, stdout);
 
-    for ( ; ; )
-    {
+    for ( ; ; ) {
         completion_AcceptRequest(&session, stdin);
-        /* __dump_session(&session, stdout); */
     }
 
     return 0;

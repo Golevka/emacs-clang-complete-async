@@ -72,7 +72,8 @@ completion_parseTranslationUnit(completion_Session *session)
     session->cx_tu = 
         clang_parseTranslationUnit(
             session->cx_index, session->src_filename, 
-            session->cmdline_args, session->num_args, &unsaved_files, 1,
+            (const char * const *) session->cmdline_args, session->num_args, 
+            &unsaved_files, 1,
             session->ParseOptions);
 
     return session->cx_tu;

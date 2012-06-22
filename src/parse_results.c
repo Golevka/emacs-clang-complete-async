@@ -90,7 +90,7 @@ static void completion_printAllCompletionTerms(
             break;
                 
         default:
-            fprintf(fp, clang_getCString(chk_text));
+            fprintf(fp, "%s", clang_getCString(chk_text));
         }
 
         clang_disposeString(chk_text);
@@ -120,7 +120,7 @@ void completion_printCompletionLine(
 /* Print all completion results to fp */
 void completion_printCodeCompletionResults(CXCodeCompleteResults *res, FILE *fp)
 {
-    int i = 0;
+    unsigned int i = 0;
     for ( ; i < res->NumResults; i++) {
         completion_printCompletionLine(res->Results[i].CompletionString, fp);
     }

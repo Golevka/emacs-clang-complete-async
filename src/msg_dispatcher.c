@@ -25,7 +25,7 @@ __command_dispatch_table[] =
 /* Dispatch different messages to their corresponding message handlers */
 void completion_AcceptRequest(completion_Session *session, FILE *fp)
 {
-    int i_entry = 0;
+    unsigned int i_entry = 0;
     char msg_head[LINE_MAX];
     fscanf(fp, "%s", msg_head);
 

@@ -84,12 +84,16 @@ void completion_doCompletion(completion_Session *session, FILE *fp)
 
 
 /* Reparse the source code to refresh the translation unit */
-void completion_doReparse(completion_Session *session, FILE *fp) {
+void completion_doReparse(completion_Session *session, FILE *fp)
+{
+    (void) fp;     /* get rid of unused parameter warning */
     completion_reparseTranslationUnit(session);
 }
 
 /* Update source code in src_buffer */
-void completion_doSourcefile(completion_Session *session, FILE *fp) {
+void completion_doSourcefile(completion_Session *session, FILE *fp)
+{
+    (void) fp;     /* get rid of unused parameter warning  */
     completion_readSourcefile(session, fp);
 }
 
@@ -148,6 +152,9 @@ void completion_doCmdlineArgs(completion_Session *session, FILE *fp)
    function to inform the completion server (this program) to terminate. */
 void completion_doShutdown(completion_Session *session, FILE *fp)
 {
+    (void) fp;    /* this parameter is unused, the server will shutdown
+                   * directly without sending any messages to its client */
+
     /* free clang parser infrastructures */
     clang_disposeTranslationUnit(session->cx_tu);
     clang_disposeIndex(session->cx_index);
