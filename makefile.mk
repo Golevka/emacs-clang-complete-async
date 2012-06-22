@@ -41,7 +41,8 @@ $(PROGRAM_NAME): $(object-list)
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 
-$(OBJECT_PATH)/%.o: %.c $(OBJECT_PATH)
+$(OBJECT_PATH)/%.o: %.c
+	@mkdir -p $(OBJECT_PATH)
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
 
@@ -53,9 +54,6 @@ $(DEPENDENCY_PATH)/%.d: %.c
 	@$(CC) -M $(CFLAGS) $< > $@.$$$$;			\
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;	\
 	rm -f $@.$$$$
-
-$(OBJECT_PATH):
-	@mkdir -p $@
 
 
 .PHONY: clean build

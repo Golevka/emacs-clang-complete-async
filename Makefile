@@ -5,17 +5,8 @@ OBJECT_PATH     := ./src/obj
 
 PROGRAM_NAME    := clang-complete
 
-EXTERNAL_LIBS := $(wildcard /usr/lib/llvm/*.a)
-LDLIBS := `llvm-config --ldflags --libs all` -lstdc++
+LDLIBS := $(shell llvm-config --ldflags) $(shell llvm-config --libs all) -lstdc++ -lclang
+CFLAGS += $(shell llvm-config --cflags) -Wall -Wextra -pedantic -O3
 
-CFLAGS += `llvm-config --cflags` -Wall -Wextra -pedantic -O3
-#CC = g++
 
 include makefile.mk
-
-
-# default:
-# 	g++ syntax.c -fno-rtti	\
-# 		`llvm-config --cflags --ldflags --libs all` \
-# 		/usr/lib/llvm/libLLVM*.a /usr/lib/llvm/libclang*.a	\
-# 		-o syntax
