@@ -442,7 +442,7 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
   (setq completion-proc 
         (let ((process-connection-type nil)) 
           (apply 'start-process 
-                 "clang-complete" "clang-complete" 
+                 "clang-complete" "*clang-complete*" 
                  "~/.emacs.d/clang-complete"
                  (append (ac-clang-build-args) 
                          (list (buffer-file-name))))))
