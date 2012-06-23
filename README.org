@@ -24,6 +24,7 @@ clang-complete executable to ~/.emacs.d/, and add the following code to your
 (require 'auto-complete-clang-async)
 
 (defun ac-cc-mode-setup ()
+  (setq clang-complete-executable "~/.emacs.d/clang-complete")
   (setq ac-sources '(ac-source-clang-async))
   (launch-completion-proc)
 )

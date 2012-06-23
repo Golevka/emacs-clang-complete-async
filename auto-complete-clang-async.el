@@ -47,9 +47,9 @@
 ;;; Code:
 
 
-(defcustom ac-clang-executable
-  (executable-find "clang")
-  "*Location of clang executable"
+(defcustom clang-complete-executable
+  (executable-find "clang-complete")
+  "*Location of clang-complete executable"
   :group 'auto-complete
   :type 'file)
 
@@ -200,26 +200,45 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
   (interactive)
   ;; (ac-last-quick-help)
   (let ((help (ac-clang-clean-document (get-text-property 0 'ac-clang-help (cdr ac-last-completion))))
-        (candidates (list)) ss ret-fn args idx)
-    (setq ss (split-string help "\n"))
+        (raw-help (get-text-property 0 'ac-clang-help (cdr ac-last-completion)))
+        (candidates (list)) ss fn args (ret-t "") ret-f)
+    (setq ss (split-string raw-help "\n"))
     (dolist (s ss)
-      (when (string-match "^\\(.*\\)\\((.*)\\).*$" s)
-        (setq ret-fn (match-string 1 s)
-              args (match-string 2 s))
-        (push (propertize args 'ac-clang-help ret-fn) candidates)
-        (when (setq idx (string-match "\{#" args))
-          (push (propertize (concat (substring args 0 idx) ")") 'ac-clang-help ret-fn) candidates))
-        (when (setq idx (string-match ", \\.\\.\\." args))
-          (push (propertize (concat (substring args 0 idx) ")") 'ac-clang-help ret-fn) candidates))))
-    (when candidates
-      (setq candidates (delete-dups candidates))
-      (setq candidates (nreverse candidates))
-      (setq ac-template-candidates candidates)
-      (setq ac-template-start-point (point))
-      (ac-complete-template)
+      (when (string-match "\\[#\\(.*\\)#\\]" s)
+        (setq ret-t (match-string 1 s)))
+      (setq s (replace-regexp-in-string "\\[#.*?#\\]" "" s))
+      (cond ((string-match "^\\([^(]*\\)\\((.*)\\)" s)
+             (setq fn (match-string 1 s)
+                   args (match-string 2 s))
+             (push (propertize (ac-clang-clean-document args) 'ac-clang-help ret-t
+                               'raw-args args) candidates)
+             (when (string-match "\{#" args)
+               (setq args (replace-regexp-in-string "\{#.*#\}" "" args))
+               (push (propertize (ac-clang-clean-document args) 'ac-clang-help ret-t
+                                 'raw-args args) candidates))
+             (when (string-match ", \\.\\.\\." args)
+               (setq args (replace-regexp-in-string ", \\.\\.\\." "" args))
+               (push (propertize (ac-clang-clean-document args) 'ac-clang-help ret-t
+                                 'raw-args args) candidates)))
+            ((string-match "^\\([^(]*\\)(\\*)\\((.*)\\)" ret-t) ;; check whether it is a function ptr
+             (setq ret-f (match-string 1 ret-t)
+                   args (match-string 2 ret-t))
+             (push (propertize args 'ac-clang-help ret-f 'raw-args "") candidates)
+             (when (string-match ", \\.\\.\\." args)
+               (setq args (replace-regexp-in-string ", \\.\\.\\." "" args))
+               (push (propertize args 'ac-clang-help ret-f 'raw-args "") candidates)))))
+    (cond (candidates
+           (setq candidates (delete-dups candidates))
+           (setq candidates (nreverse candidates))
+           (setq ac-template-candidates candidates)
+           (setq ac-template-start-point (point))
+           (ac-complete-template)
+           
+           (unless (cdr candidates) ;; unless length > 1
+             (message (replace-regexp-in-string "\n" "   ;    " help))))
+          (t
+           (message (replace-regexp-in-string "\n" "   ;    " help))))))
 
-      (unless (cdr candidates) ;; unless length > 1
-        (message (replace-regexp-in-string "\n" "   ;    " help))))))
 
 (defun ac-clang-prefix ()
   (or (ac-prefix-symbol)
@@ -246,14 +265,16 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 
 (defun ac-clang-split-args (s)
   (let ((sl (split-string s ", *")))
-    (cond ((string-match "<" s)
+    (cond ((string-match "<\\|(" s)
            (let ((res (list)) (pre "") subs)
              (while sl
                (setq subs (pop sl))
                (unless (string= pre "")
                  (setq subs (concat pre ", " subs))
                  (setq pre ""))
-               (cond ((ac-clang-same-count-in-string ?\< ?\> subs)
+               (cond ((and (ac-clang-same-count-in-string ?\< ?\> subs)
+                           (ac-clang-same-count-in-string ?\( ?\) subs))
+               ;; (cond ((ac-clang-same-count-in-string ?\< ?\> subs)
                       (push subs res))
                      (t
                       (setq pre subs))))
@@ -268,33 +289,54 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 (defun ac-template-action ()
   (interactive)
   (unless (null ac-template-start-point)
-    (let ((pos (point)) s sl (snp ""))
-      (setq s (buffer-substring-no-properties ac-template-start-point pos))
-      (setq s (replace-regexp-in-string "[()]" "" s))
-      (unless (string= s "")
-        (setq s (replace-regexp-in-string "{#" "\\\\{" s))
-        (setq s (replace-regexp-in-string "#}" "" s))
-        (setq sl (ac-clang-split-args s))
-        ;; todo: take care undo-list
-        (cond ((featurep 'yasnippet)
-               (dolist (arg sl)
-                 (setq snp (concat snp ", ${" arg "}")))
-               (condition-case nil
-                   (yas/expand-snippet (concat "("  (substring snp 2) ")") 
-                                       ac-template-start-point pos) ;; 0.6.1c
-                 (error
-                  ;; try this one:
-                  (ignore-errors 
-                    (yas/expand-snippet ac-template-start-point pos 
-                                        (concat "("  (substring snp 2) ")"))) ;; work in 0.5.7
-                  )))
-              ((featurep 'snippet)
-               (delete-region ac-template-start-point pos)
-               (dolist (arg sl)
-                 (setq snp (concat snp ", $${" arg "}")))
-               (snippet-insert (concat "("  (substring snp 2) ")")))
-              (t
-               (message "Dude! You are too out! Please install a yasnippet or a snippet script:)")))))))
+    (let ((pos (point)) sl (snp "")
+          (s (get-text-property 0 'raw-args (cdr ac-last-completion))))
+      (cond ((string= s "")
+             ;; function ptr call
+             (setq s (cdr ac-last-completion))
+             (setq s (replace-regexp-in-string "^(\\|)$" "" s))
+             (setq sl (ac-clang-split-args s))
+             (cond ((featurep 'yasnippet)
+                    (dolist (arg sl)
+                      (setq snp (concat snp ", ${" arg "}")))
+                    (condition-case nil
+                        (yas/expand-snippet (concat "("  (substring snp 2) ")")
+                                            ac-template-start-point pos) ;; 0.6.1c
+                      (error
+                       ;; try this one:
+                       (ignore-errors (yas/expand-snippet
+                                       ac-template-start-point pos
+                                       (concat "("  (substring snp 2) ")"))) ;; work in 0.5.7
+                       )))
+                   ((featurep 'snippet)
+                    (delete-region ac-template-start-point pos)
+                    (dolist (arg sl)
+                      (setq snp (concat snp ", $${" arg "}")))
+                    (snippet-insert (concat "("  (substring snp 2) ")")))
+                   (t
+                    (message "Dude! You are too out! Please install a yasnippet or a snippet script:)"))))
+             (t
+             (unless (string= s "()")
+               (setq s (replace-regexp-in-string "{#" "" s))
+               (setq s (replace-regexp-in-string "#}" "" s))
+               (cond ((featurep 'yasnippet)
+                      (setq s (replace-regexp-in-string "<#" "${" s))
+                      (setq s (replace-regexp-in-string "#>" "}" s))
+                      (setq s (replace-regexp-in-string ", \\.\\.\\." "}, ${..." s))
+                      (condition-case nil
+                          (yas/expand-snippet s ac-template-start-point pos) ;; 0.6.1c
+                        (error
+                         ;; try this one:
+                         (ignore-errors (yas/expand-snippet ac-template-start-point pos s)) ;; work in 0.5.7
+                         )))
+                     ((featurep 'snippet)
+                      (delete-region ac-template-start-point pos)
+                      (setq s (replace-regexp-in-string "<#" "$${" s))
+                      (setq s (replace-regexp-in-string "#>" "}" s))
+                      (setq s (replace-regexp-in-string ", \\.\\.\\." "}, $${..." s))
+                      (snippet-insert s))
+                     (t
+                      (message "Dude! You are too out! Please install a yasnippet or a snippet script:)")))))))))
 
 
 (defun ac-template-prefix ()
@@ -443,7 +485,7 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
         (let ((process-connection-type nil)) 
           (apply 'start-process 
                  "clang-complete" "*clang-complete*" 
-                 "~/.emacs.d/clang-complete"
+                 clang-complete-executable
                  (append (ac-clang-build-args) 
                          (list (buffer-file-name))))))
 
