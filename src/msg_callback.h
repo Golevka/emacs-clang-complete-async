@@ -44,6 +44,8 @@ void completion_doCmdlineArgs(completion_Session *session, FILE *fp);  /* CMDLIN
 void completion_doReparse(completion_Session *session, FILE *fp);      /* REPARSE */
 void completion_doShutdown(completion_Session *session, FILE *fp);     /* SHUTDOWN */
 
+/* experimental */
+void completion_doSyntaxCheck(completion_Session *session, FILE *fp);  /* SYNTAXCHECK */
 
 
 #endif /* _COMPLETION_PROTOCOL_H_ */

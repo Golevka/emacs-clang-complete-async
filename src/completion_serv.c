@@ -47,7 +47,7 @@ void startup_completionSession(int argc, char *argv[], completion_Session *sessi
     session->ParseOptions      = DEFAULT_PARSE_OPTIONS;
     session->CompleteAtOptions = DEFAULT_COMPLETEAT_OPTIONS;
 
-    session->cx_index = clang_createIndex(0, 1);
+    session->cx_index = clang_createIndex(0, 0);
     completion_parseTranslationUnit(session);
     completion_reparseTranslationUnit(session);
 }

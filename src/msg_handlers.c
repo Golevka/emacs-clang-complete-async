@@ -165,3 +165,33 @@ void completion_doShutdown(completion_Session *session, FILE *fp)
 
     exit(0);   /* terminate completion process */
 }
+
+
+/* Experimental routine for on-the-fly syntax checking */
+void completion_doSyntaxCheck(completion_Session *session, FILE *fp)
+{
+    unsigned int i_diag = 0, n_diag;
+    CXDiagnostic diag;
+    CXString     dmsg;
+
+    /* get a copy of fresh source file */
+    completion_readSourcefile(session, fp);    
+
+    /* reparse the source to retrieve diagnostic message */
+    completion_reparseTranslationUnit(session);
+
+    /* dump all diagnostic messages to fp */
+    n_diag = clang_getNumDiagnostics(session->cx_tu);
+    for ( ; i_diag < n_diag; i_diag++)
+    {
+        diag = clang_getDiagnostic(session->cx_tu, i_diag);
+        dmsg = clang_formatDiagnostic(diag, clang_defaultDiagnosticDisplayOptions());
+        fprintf(fp, "%s\n", clang_getCString(dmsg));
+        clang_disposeString(dmsg);
+
+        /* I don't know if it should be disposed, need for some shakedown run */
+        /* clang_disposeDiagnostic(diag); */
+    }
+
+    fprintf(stdout, "$"); fflush(stdout);    /* end of output */
+}
