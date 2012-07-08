@@ -1,5 +1,6 @@
 (provide 'auto-complete-clang-async)
 (require 'auto-complete)
+(require 'flymake)
 
 
 (defvar ac-clang-status   'idle)
@@ -498,6 +499,30 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
   ))
 
 
+
+
+(defun my-flymake-process-sentinel ()
+  (interactive)
+    (setq flymake-err-info flymake-new-err-info)
+    (setq flymake-new-err-info nil)
+    (setq flymake-err-info
+          (flymake-fix-line-numbers
+           flymake-err-info 1 (flymake-count-lines)))
+    (flymake-delete-own-overlays)
+    (flymake-highlight-err-lines flymake-err-info))
+
+
+(defun my-flymake-process-filter (process output)
+  (let ((source-buffer (current-buffer)))
+    (flymake-log 3 "received %d byte(s) of output from process %d"
+                 (length output) (process-id process))
+    (when (buffer-live-p source-buffer)
+      (with-current-buffer source-buffer
+        (flymake-parse-output-and-residual output)
+        (my-flymake-process-sentinel)))))
+
+
+
 ;; launch completion process
 (defun launch-completion-proc ()
   ;; launch the process
@@ -529,6 +554,11 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
   (local-set-key (kbd ".") 'ac-clang-async-preemptive)
   (local-set-key (kbd ":") 'ac-clang-async-preemptive)
   (local-set-key (kbd ">") 'ac-clang-async-preemptive)
+
+
+  ;; experimental - syntax check support invokes flymake in undocumented way
+  (setq flymake-log-level 3) ; enable logging
+  (set-process-filter completion-proc 'my-flymake-process-filter)
 )
 
 
@@ -542,7 +572,6 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
     (action . ac-clang-action)
     (cache)
     (symbol . "c")))
-
 
 
 
