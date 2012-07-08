@@ -44,9 +44,12 @@ static void completion_readSourcefile(completion_Session *session, FILE *fp)
     }
 
     /* read source code from fp to buffer */
-    session->src_length = source_length + 1;  /* count in the trailing '\0' */
+    /* session->src_length = source_length + 1;  /\* count in the trailing '\0' *\/ */
+    /* __read_n_bytes(fp, session->src_buffer, source_length); */
+    /* session->src_buffer[source_length] = '\0'; */
+
+    session->src_length = source_length;
     __read_n_bytes(fp, session->src_buffer, source_length);
-    session->src_buffer[source_length] = '\0';
 }
 
 
