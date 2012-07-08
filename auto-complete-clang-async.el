@@ -389,6 +389,26 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
     ;; send source code
     (send-source-code proc)))
 
+(defun send-syntaxcheck-request (proc)
+  (save-restriction
+    (widen)
+    (process-send-string proc "SYNTAXCHECK\n")
+    (send-source-code proc)))
+
+
+;; experimental
+(defun ac-clang-syntax-check ()
+  (interactive)
+  (when (eq ac-clang-status 'idle)
+    (with-current-buffer 
+        (process-buffer completion-proc) (erase-buffer))
+    (setq ac-clang-saved-prefix "-")  ; a bad idea
+    (setq current-candidate nil)      ; a worse idea
+    (setq ac-clang-status 'wait)
+    (send-syntaxcheck-request completion-proc)))
+
+
+
 (defun send-cmdline-args (proc)
   ;; send message head and num_args
   (process-send-string proc "CMDLINEARGS\n")

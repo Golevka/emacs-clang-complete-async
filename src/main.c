@@ -30,6 +30,4 @@ int main(int argc, char *argv[])
     for ( ; ; ) {
         completion_AcceptRequest(&session, stdin);
     }
-
-    return 0;
 }
