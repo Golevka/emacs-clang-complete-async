@@ -179,16 +179,11 @@ void completion_doSyntaxCheck(completion_Session *session, FILE *fp)
     /* get a copy of fresh source file */
     completion_readSourcefile(session, fp);
 
-    fprintf(stdout, "got source code.\n%s", session->src_buffer);
-
     /* reparse the source to retrieve diagnostic message */
     completion_reparseTranslationUnit(session);
 
-    fprintf(stdout, "translation unit reparsed\n");
-
     /* dump all diagnostic messages to fp */
     n_diag = clang_getNumDiagnostics(session->cx_tu);
-    fprintf(fp, "number of diagnostic messages: %d\n", n_diag);
     for ( ; i_diag < n_diag; i_diag++)
     {
         diag = clang_getDiagnostic(session->cx_tu, i_diag);
@@ -197,7 +192,7 @@ void completion_doSyntaxCheck(completion_Session *session, FILE *fp)
         clang_disposeString(dmsg);
 
         /* I don't know if it should be disposed, need for some shakedown run */
-        /* clang_disposeDiagnostic(diag); */
+        clang_disposeDiagnostic(diag);
     }
 
     fprintf(stdout, "$"); fflush(stdout);    /* end of output */
