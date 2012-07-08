@@ -406,6 +406,8 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
     (setq ac-clang-saved-prefix "-")  ; a bad idea
     (setq current-candidate nil)      ; a worse idea
     (setq ac-clang-status 'wait)
+    ;; launch 
+    (set-process-filter completion-proc 'my-flymake-process-filter)
     (send-syntaxcheck-request completion-proc)))
 
 
@@ -500,7 +502,7 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 
 
 
-
+;; experimental
 (defun my-flymake-process-sentinel ()
   (interactive)
     (setq flymake-err-info flymake-new-err-info)
@@ -518,8 +520,17 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
                  (length output) (process-id process))
     (when (buffer-live-p source-buffer)
       (with-current-buffer source-buffer
-        (flymake-parse-output-and-residual output)
-        (my-flymake-process-sentinel)))))
+        (flymake-parse-output-and-residual output)))
+
+    (when (string= (substring output -1 nil) "$") ; we're done
+      ;; highligh error lines
+      (flymake-parse-residual)
+      (my-flymake-process-sentinel)
+      ;; back to normal completion mode
+      (setq ac-clang-status 'idle)
+      (set-process-filter completion-proc 'filter-output)
+      )
+    ))
 
 
 
@@ -557,8 +568,7 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 
 
   ;; experimental - syntax check support invokes flymake in undocumented way
-  (setq flymake-log-level 3) ; enable logging
-  (set-process-filter completion-proc 'my-flymake-process-filter)
+  (setq flymake-log-level 3) ; EXPERIMENTAL/DEBUG: enable logging
 )
 
 
