@@ -11,6 +11,13 @@ This extension is not implemented in pure elisp, it is made up of a client part
 (clang-complete binary, written in C), they work cooperately in asynchonous
 client-server fashion.
 
+* Experimental Feature - On the fly syntax checking
+
+An experimental feature is added to this branch --- running
+=ac-clang-syntax-check= to highlight errornous lines in your souce code.
+
+[[https://github.com/Golevka/emacs-clang-complete-async/raw/master/screenshots/syntax-check.png]]
+
 
 * Setup
 
