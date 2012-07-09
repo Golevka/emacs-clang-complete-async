@@ -396,22 +396,6 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
     (process-send-string proc "SYNTAXCHECK\n")
     (send-source-code proc)))
 
-
-;; experimental
-(defun ac-clang-syntax-check ()
-  (interactive)
-  (when (eq ac-clang-status 'idle)
-    (with-current-buffer 
-        (process-buffer completion-proc) (erase-buffer))
-    (setq ac-clang-saved-prefix "-")  ; a bad idea
-    (setq current-candidate nil)      ; a worse idea
-    (setq ac-clang-status 'wait)
-    ;; launch 
-    (set-process-filter completion-proc 'my-flymake-process-filter)
-    (send-syntaxcheck-request completion-proc)))
-
-
-
 (defun send-cmdline-args (proc)
   ;; send message head and num_args
   (process-send-string proc "CMDLINEARGS\n")
@@ -502,19 +486,20 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 
 
 
-;; experimental
-(defun my-flymake-process-sentinel ()
+;;  Syntax checking with flymake
+;;
+(defun ac-flymake-process-sentinel ()
   (interactive)
-    (setq flymake-err-info flymake-new-err-info)
-    (setq flymake-new-err-info nil)
-    (setq flymake-err-info
-          (flymake-fix-line-numbers
-           flymake-err-info 1 (flymake-count-lines)))
-    (flymake-delete-own-overlays)
-    (flymake-highlight-err-lines flymake-err-info))
+  (setq flymake-err-info flymake-new-err-info)
+  (setq flymake-new-err-info nil)
+  (setq flymake-err-info
+        (flymake-fix-line-numbers
+         flymake-err-info 1 (flymake-count-lines)))
+  (flymake-delete-own-overlays)
+  (flymake-highlight-err-lines flymake-err-info))
 
 
-(defun my-flymake-process-filter (process output)
+(defun ac-flymake-process-filter (process output)
   (let ((source-buffer (current-buffer)))
     (flymake-log 3 "received %d byte(s) of output from process %d"
                  (length output) (process-id process))
@@ -523,14 +508,26 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
         (flymake-parse-output-and-residual output)))
 
     (when (string= (substring output -1 nil) "$") ; we're done
-      ;; highligh error lines
+      ;; highligh errornous lines
       (flymake-parse-residual)
-      (my-flymake-process-sentinel)
+      (ac-flymake-process-sentinel)
       ;; back to normal completion mode
       (setq ac-clang-status 'idle)
       (set-process-filter completion-proc 'filter-output)
-      )
-    ))
+      )))
+
+
+(defun ac-clang-syntax-check ()
+  (interactive)
+  (when (eq ac-clang-status 'idle)
+    ;; (with-current-buffer 
+    ;;     (process-buffer completion-proc) (erase-buffer))
+    ;; (setq ac-clang-saved-prefix "-")  ; a bad idea
+    ;; (setq current-candidate nil)      ; a worse idea
+    (setq ac-clang-status 'wait)
+    ;; launch 
+    (set-process-filter completion-proc 'ac-flymake-process-filter)
+    (send-syntaxcheck-request completion-proc)))
 
 
 
@@ -565,10 +562,6 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
   (local-set-key (kbd ".") 'ac-clang-async-preemptive)
   (local-set-key (kbd ":") 'ac-clang-async-preemptive)
   (local-set-key (kbd ">") 'ac-clang-async-preemptive)
-
-
-  ;; experimental - syntax check support invokes flymake in undocumented way
-  (setq flymake-log-level 3) ; EXPERIMENTAL/DEBUG: enable logging
 )
 
 

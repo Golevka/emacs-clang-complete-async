@@ -33,6 +33,11 @@ void completion_AcceptRequest(completion_Session *session, FILE *fp);
    REPARSE: Reparse the source code
    [no message body]
 
+   SYNTAXCHECK: Retrieve diagnostic messages
+   Message format:
+        source_length:[#src_length#]
+        <# SOURCE CODE #>
+
    SHUTDOWN: Shut down the completion server (this program)
    [no message body]
 */
@@ -42,10 +47,8 @@ void completion_doCompletion(completion_Session *session, FILE *fp);   /* COMPLE
 void completion_doSourcefile(completion_Session *session, FILE *fp);   /* SOURCEFILE */
 void completion_doCmdlineArgs(completion_Session *session, FILE *fp);  /* CMDLINEARGS */
 void completion_doReparse(completion_Session *session, FILE *fp);      /* REPARSE */
-void completion_doShutdown(completion_Session *session, FILE *fp);     /* SHUTDOWN */
-
-/* experimental */
 void completion_doSyntaxCheck(completion_Session *session, FILE *fp);  /* SYNTAXCHECK */
+void completion_doShutdown(completion_Session *session, FILE *fp);     /* SHUTDOWN */
 
 
 #endif /* _COMPLETION_PROTOCOL_H_ */
