@@ -418,6 +418,17 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
   (process-send-string proc "SHUTDOWN\n"))
 
 
+;; A helper function to redirect process output to process buffer
+(defun append-process-output-to-process-buffer (process output)
+  (with-current-buffer (process-buffer process)
+    (save-excursion
+      ;; Insert the text, advancing the process marker.
+      (goto-char (process-mark process))
+      (insert output)
+      (set-marker (process-mark process) (point)))
+    (goto-char (process-mark process))))
+
+
 ;;/===============================================================================\
 ;;  Recieve server responses (completion candidates) and fire auto-complete
 ;;
@@ -426,14 +437,9 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
     (ac-clang-parse-output ac-clang-saved-prefix)))
 
 (defun filter-output (proc string)
-  (with-current-buffer (process-buffer proc)
-    (save-excursion
-      ;; Insert the text, advancing the process marker.
-      (goto-char (process-mark proc))
-      (insert string)
-      (set-marker (process-mark proc) (point)))
-    (goto-char (process-mark proc)))
-  
+  ;; redirect proc output to its buffer
+  (append-process-output-to-process-buffer proc string)
+  ;; check if it is the end of this response message
   (if (string= (substring string -1 nil) "$")
       (cond ((not (eq ac-clang-status 'preempted))
              (setq current-candidate (parse-completion-results proc))
@@ -501,6 +507,11 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 
 (defun ac-flymake-process-filter (process output)
   (let ((source-buffer (current-buffer)))
+
+    ;; redirect proc output to its buffer
+    (append-process-output-to-process-buffer process output)
+
+    ;; code from flymake.el.gz
     (flymake-log 3 "received %d byte(s) of output from process %d"
                  (length output) (process-id process))
     (when (buffer-live-p source-buffer)
@@ -520,8 +531,9 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 (defun ac-clang-syntax-check ()
   (interactive)
   (when (eq ac-clang-status 'idle)
-    ;; (with-current-buffer 
-    ;;     (process-buffer completion-proc) (erase-buffer))
+    ;; erase completion buffer
+    (with-current-buffer 
+        (process-buffer completion-proc) (erase-buffer))
     ;; (setq ac-clang-saved-prefix "-")  ; a bad idea
     ;; (setq current-candidate nil)      ; a worse idea
     (setq ac-clang-status 'wait)
