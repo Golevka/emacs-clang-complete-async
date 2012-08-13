@@ -556,6 +556,7 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 
   ;; hook filter to it
   (set-process-filter completion-proc 'filter-output)
+  (set-process-query-on-exit-flag completion-proc nil)
   ;; and let it preparse the source code...
   (send-reparse-request completion-proc)
 
