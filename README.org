@@ -57,10 +57,6 @@ interactively or set the value of ac-clang-flags in .emacs or .dir-locals.el,
 maybe you need an explicit call to ac-clang-update-cmdlineargs to make changes 
 to cflags take effect, which is a niggling part of it T T
 
-Another annoying thing is that when you exit emacs while leaving any buffer in
-C/C++ mode open, emacs would confirm if to kill all running clang-complete
-processes. Maybe some kinds of function hook could solve this problem.
-
 
 * Note
 
