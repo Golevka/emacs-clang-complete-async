@@ -1,11 +1,11 @@
 ;;; auto-complete-clang-async.el --- Auto Completion source for clang for GNU Emacs
 
 ;; Copyright (C) 2010  Brian Jiang
-;; Copyright (C) 2012  Taylan Ulrich Bayırlı/Kammer
+;; Copyright (C) 2012  Taylan Ulrich Bayirli/Kammer
 
 ;; Authors: Brian Jiang <brianjcj@gmail.com>
 ;;          Golevka(?) [https://github.com/Golevka]
-;;          Taylan Ulrich Bayırlı/Kammer <taylanbayirli@gmail.com>
+;;          Taylan Ulrich Bayirli/Kammer <taylanbayirli@gmail.com>
 ;;          Many others
 ;; Keywords: completion, convenience
 ;; Version: 0
@@ -156,10 +156,8 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
   (let ((buf (get-buffer-create "*clang-output*"))
         res)
     (with-current-buffer buf (erase-buffer))
-    (setq res (if ac-clang-auto-save
-                  (apply 'call-process ac-clang-executable nil buf nil args)
-                (apply 'call-process-region (point-min) (point-max)
-                       ac-clang-executable nil buf nil args)))
+    (setq res (apply 'call-process-region (point-min) (point-max)
+                     ac-clang-executable nil buf nil args))
     (with-current-buffer buf
       (unless (eq 0 res)
         (ac-clang-handle-error res args))
@@ -170,7 +168,8 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 (defsubst ac-clang-build-location (pos)
   (save-excursion
     (goto-char pos)
-    (format "%s:%d:%d" (if ac-clang-auto-save buffer-file-name "-") (line-number-at-pos)
+    (format "row:%d\ncolumn:%d\n"
+            (line-number-at-pos)
             (1+ (- (point) (line-beginning-position))))))
 
 (defsubst ac-clang-lang-option ()
@@ -188,16 +187,12 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
             (t
              "c++"))))
 
-(defsubst ac-clang-build-complete-args (pos)
+(defsubst ac-clang-build-complete-args ()
   (append '("-cc1" "-fsyntax-only")
-          (unless ac-clang-auto-save
-            (list "-x" (ac-clang-lang-option)))
+          (list "-x" (ac-clang-lang-option))
           ac-clang-flags
           (when (stringp ac-clang-prefix-header)
-            (list "-include-pch" (expand-file-name ac-clang-prefix-header)))
-          '("-code-completion-at")
-          (list (ac-clang-build-location pos))
-          (list (if ac-clang-auto-save buffer-file-name "-"))))
+            (list "-include-pch" (expand-file-name ac-clang-prefix-header)))))
 
 
 (defsubst ac-clang-clean-document (s)
@@ -228,17 +223,6 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 (defsubst ac-clang-in-string/comment ()
   "Return non-nil if point is in a literal (a comment or string)."
   (nth 8 (syntax-ppss)))
-
-(defun ac-clang-candidate ()
-  (unless (ac-clang-in-string/comment)
-    (and ac-clang-auto-save
-         (buffer-modified-p)
-         (basic-save-buffer))
-    (save-restriction
-      (widen)
-      (apply 'ac-clang-call-process
-             ac-prefix
-             (ac-clang-build-complete-args (- (point) (length ac-prefix)))))))
 
 
 (defvar ac-clang-template-start-point nil)
@@ -452,13 +436,13 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
   ;; send message head and num_args
   (process-send-string proc "CMDLINEARGS\n")
   (process-send-string
-   proc (format "num_args:%d\n" (length (ac-clang-build-args))))
+   proc (format "num_args:%d\n" (length (ac-clang-build-complete-args))))
 
   ;; send arguments
   (mapc
    (lambda (arg)
      (process-send-string proc (format "%s " arg)))
-   (ac-clang-build-args))
+   (ac-clang-build-complete-args))
   (process-send-string proc "\n"))
 
 (defun ac-clang-update-cmdlineargs ()
@@ -593,11 +577,11 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
           (apply 'start-process
                  "clang-complete" "*clang-complete*"
                  ac-clang-complete-executable
-                 (append (ac-clang-build-args)
+                 (append (ac-clang-build-complete-args)
                          (list (buffer-file-name))))))
 
   (set-process-filter ac-clang-completion-process 'ac-clang-filter-output)
-  (set-process-query-on-exit-flag completion-proc nil)
+  (set-process-query-on-exit-flag ac-clang-completion-process nil)
   ;; Pre-parse source code.
   (ac-clang-send-reparse-request ac-clang-completion-process)
 
