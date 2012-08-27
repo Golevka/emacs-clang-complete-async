@@ -28,15 +28,9 @@ dependency-list = $(addprefix  $(DEPENDENCY_PATH)/, $(depname-list))
 CFLAGS += $(addprefix  -I, $(INCLUDE_PATH))
 
 
-# Build external library cmdline parameter, those -Xlinker directives instructs
-# the linker find the correct linking sequence regardless the order of items
-# specified in EXTERNAL_LIBS.
-LOADLIBS += \
-		$(addprefix  -Xlinker , $(EXTERNAL_LIBS)) \
-
 # PROGRAM_NAME is provided in custom makefile
 $(PROGRAM_NAME): $(object-list)
-	$(LINK.c) $^ $(LOADLIBS) $(LDLIBS) -o $@
+	$(LINK.c) $^ $(LDLIBS) -o $@
 
 
 $(OBJECT_PATH)/%.o: %.c
