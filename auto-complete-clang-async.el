@@ -474,52 +474,54 @@ e.g., ( \"-I~/MyProject\", \"-I.\" )."
 (defun ac-clang-filter-output (proc string)
   (ac-clang-append-process-output-to-process-buffer proc string)
   (if (string= (substring string -1 nil) "$")
-      (cond ((not (eq ac-clang-status 'preempted))
-             (setq ac-clang-current-candidate (ac-clang-parse-completion-results proc))
-             ;; (message "ac-clang results arrived")
-             (setq ac-clang-status 'ack)
-             (ac-start :force-init t)
-             (ac-update)
-             (setq ac-clang-status 'idle))
-
-            ((eq ac-clang-status 'preempted)
-             (setq ac-clang-status 'idle)
-             (ac-start)
-             (ac-update)))))
+      (case ac-clang-status
+        (preempted
+         (setq ac-clang-status 'idle)
+         (ac-start)
+         (ac-update))
+        
+        (otherwise
+         (setq ac-clang-current-candidate (ac-clang-parse-completion-results proc))
+         ;; (message "ac-clang results arrived")
+         (setq ac-clang-status 'acknowledged)
+         (ac-start :force-init t)
+         (ac-update)
+         (setq ac-clang-status 'idle)))))
 
 
 (defun ac-clang-candidate ()
-  (cond ((eq ac-clang-status 'idle)
-         ;; (message "ac-clang-candidate triggered - fetching candidates...")
-         (setq ac-clang-saved-prefix ac-prefix)
+  (case ac-clang-status
+    (idle
+     ;; (message "ac-clang-candidate triggered - fetching candidates...")
+     (setq ac-clang-saved-prefix ac-prefix)
 
-         ;; NOTE: although auto-complete would filter the result for us, but when there's
-         ;;       a HUGE number of candidates avaliable it would cause auto-complete to
-         ;;       block. So we filter it uncompletely here, then let auto-complete filter
-         ;;       the rest later, this would ease the feeling of being "stalled" at some degree.
+     ;; NOTE: although auto-complete would filter the result for us, but when there's
+     ;;       a HUGE number of candidates avaliable it would cause auto-complete to
+     ;;       block. So we filter it uncompletely here, then let auto-complete filter
+     ;;       the rest later, this would ease the feeling of being "stalled" at some degree.
 
-         ;; (message "saved prefix: %s" ac-clang-saved-prefix)
-         (with-current-buffer (process-buffer ac-clang-completion-process)
-           (erase-buffer))
-         (setq ac-clang-status 'wait)
-         (setq ac-clang-current-candidate nil)
+     ;; (message "saved prefix: %s" ac-clang-saved-prefix)
+     (with-current-buffer (process-buffer ac-clang-completion-process)
+       (erase-buffer))
+     (setq ac-clang-status 'wait)
+     (setq ac-clang-current-candidate nil)
 
-         ;; send completion request
-         (ac-clang-send-completion-request ac-clang-completion-process)
-         ac-clang-current-candidate)
+     ;; send completion request
+     (ac-clang-send-completion-request ac-clang-completion-process)
+     ac-clang-current-candidate)
 
-        ((eq ac-clang-status 'wait) ; patient, we are waiting for the candidates...
-         ;; (message "ac-clang-candidate triggered - wait")
-         ac-clang-current-candidate)
+    (wait
+     ;; (message "ac-clang-candidate triggered - wait")
+     ac-clang-current-candidate)
 
-        ((eq ac-clang-status 'ack) ; acknowledged...
-         ;; (message "ac-clang-candidate triggered - ack")
-         (setq ac-clang-status 'idle)
-         ac-clang-current-candidate)
+    (acknowledged
+     ;; (message "ac-clang-candidate triggered - ack")
+     (setq ac-clang-status 'idle)
+     ac-clang-current-candidate)
 
-        ((eq ac-clang-status 'preempted)
-         ;; (message "clang-async is preempted by a critical request")
-         nil)))
+    (preempted
+     ;; (message "clang-async is preempted by a critical request")
+     nil)))
 
 
 ;; Syntax checking with flymake
