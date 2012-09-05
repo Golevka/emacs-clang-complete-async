@@ -53,10 +53,10 @@
 ;;; Extra compilation flags to pass to clang.
 (defcustom ac-clang-flags nil
   "Extra flags to pass to the Clang executable.
-This variable will typically contain include paths,
-e.g., ( \"-I~/MyProject\", \"-I.\" )."
+This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-I.\")."
   :group 'auto-complete
   :type '(repeat (string :tag "Argument" "")))
+(make-variable-buffer-local 'ac-clang-flags)
 
 ;;; The prefix header to use with Clang code completion.
 (defvar ac-clang-prefix-header nil)
