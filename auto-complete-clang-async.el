@@ -40,53 +40,33 @@
 
 (defcustom ac-clang-complete-executable
   (executable-find "clang-complete")
-  "*Location of clang-complete executable"
+  "Location of clang-complete executable."
   :group 'auto-complete
   :type 'file)
 
-
 (defcustom ac-clang-lang-option-function nil
-  "*function to return the lang type for option -x."
+  "Function to return the lang type for option -x."
   :group 'auto-complete
   :type 'function)
 
-;;; Extra compilation flags to pass to clang.
-(defcustom ac-clang-flags nil
+(defcustom ac-clang-cflags nil
   "Extra flags to pass to the Clang executable.
 This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-I.\")."
   :group 'auto-complete
   :type '(repeat (string :tag "Argument" "")))
-(make-variable-buffer-local 'ac-clang-flags)
+(make-variable-buffer-local 'ac-clang-cflags)
 
-;;; The prefix header to use with Clang code completion.
-(defvar ac-clang-prefix-header nil)
-
-
-;;; Set the Clang prefix header
-(defun ac-clang-set-prefix-header (ph)
-  (interactive
-   (let ((def (car (directory-files "." t "\\([^.]h\\|[^h]\\).pch\\'" t))))
-     (list
-      (read-file-name (concat "Clang prefix header (currently " (or ac-clang-prefix-header "nil") ") : ")
-                      (when def (file-name-directory def))
-                      def nil (when def (file-name-nondirectory def))))))
-  (cond ((string-match "^[\s\t]*$" ph)
-         (setq ac-clang-prefix-header nil))
-        (t
-         (setq ac-clang-prefix-header ph))))
-
-;;; Set a new cflags for clang
 (defun ac-clang-set-cflags ()
-  "set new cflags for clang from input string"
+  "Set `ac-clang-cflags' interactively."
   (interactive)
-  (setq ac-clang-flags (split-string (read-string "New cflags: ")))
+  (setq ac-clang-cflags (split-string (read-string "New cflags: ")))
   (ac-clang-update-cmdlineargs))
 
-;;; Set new cflags from shell command output
 (defun ac-clang-set-cflags-from-shell-command ()
+  "Set `ac-clang-cflags' to a shell command's output."
   "set new cflags for ac-clang from shell command output"
   (interactive)
-  (setq ac-clang-flags
+  (setq ac-clang-cflags
         (split-string
          (shell-command-to-string
           (read-shell-command "Shell command: " nil nil
@@ -94,12 +74,27 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
                                    (file-relative-name buffer-file-name))))))
   (ac-clang-update-cmdlineargs))
 
+(defvar ac-clang-prefix-header nil
+  "The prefix header to pass to the Clang executable.")
+(make-variable-buffer-local 'ac-clang-prefix-header)
+
+(defun ac-clang-set-prefix-header (prefix-header)
+  "Set `ac-clang-prefix-header' interactively."
+  (interactive
+   (let ((default (car (directory-files "." t "\\([^.]h\\|[^h]\\).pch\\'" t))))
+     (list
+      (read-file-name (concat "Clang prefix header (currently " (or ac-clang-prefix-header "nil") "): ")
+                      (when default (file-name-directory default))
+                      default nil (when default (file-name-nondirectory default))))))
+  (cond
+   ((string-match "^[\s\t]*$" prefix-header)
+    (setq ac-clang-prefix-header nil))
+   (t
+    (setq ac-clang-prefix-header prefix-header))))
+
 
 (defconst ac-clang-completion-pattern
   "^COMPLETION: \\(%s[^\s\n:]*\\)\\(?: : \\)*\\(.*$\\)")
-
-
-(defconst ac-clang-error-buffer-name "*clang error*")
 
 (defun ac-clang-parse-output (prefix)
   (goto-char (point-min))
@@ -129,6 +124,8 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
           (push match lines))))
     lines))
 
+
+(defconst ac-clang-error-buffer-name "*clang error*")
 
 (defun ac-clang-handle-error (res args)
   (goto-char (point-min))
@@ -165,7 +162,7 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
       (ac-clang-parse-output prefix))))
 
 
-(defsubst ac-clang-build-location (pos)
+(defsubst ac-clang-create-position-string (pos)
   (save-excursion
     (goto-char pos)
     (format "row:%d\ncolumn:%d\n"
@@ -190,7 +187,7 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
 (defsubst ac-clang-build-complete-args ()
   (append '("-cc1" "-fsyntax-only")
           (list "-x" (ac-clang-lang-option))
-          ac-clang-flags
+          ac-clang-cflags
           (when (stringp ac-clang-prefix-header)
             (list "-include-pch" (expand-file-name ac-clang-prefix-header)))))
 
@@ -408,9 +405,11 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
 ;;;
 
 (defun ac-clang-send-source-code (proc)
-  (process-send-string proc (format "source_length:%d\n" (buffer-size)))
-  (process-send-string proc (buffer-substring-no-properties (point-min) (point-max)))
-  (process-send-string proc "\n\n"))
+  (save-restriction
+    (widen)
+    (process-send-string proc (format "source_length:%d\n" (buffer-size)))
+    (process-send-string proc (buffer-substring-no-properties (point-min) (point-max)))
+    (process-send-string proc "\n\n")))
 
 (defun ac-clang-send-reparse-request (proc)
   (save-restriction
@@ -423,7 +422,7 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
   (save-restriction
     (widen)
     (process-send-string proc "COMPLETION\n")
-    (process-send-string proc (ac-clang-build-location (- (point) (length ac-prefix))))
+    (process-send-string proc (ac-clang-create-position-string (- (point) (length ac-prefix))))
     (ac-clang-send-source-code proc)))
 
 (defun ac-clang-send-syntaxcheck-request (proc)
@@ -453,8 +452,8 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
   (process-send-string proc "SHUTDOWN\n"))
 
 
-;; A helper function to redirect process output to process buffer
 (defun ac-clang-append-process-output-to-process-buffer (process output)
+  "Append process output to the process buffer."
   (with-current-buffer (process-buffer process)
     (save-excursion
       ;; Insert the text, advancing the process marker.
