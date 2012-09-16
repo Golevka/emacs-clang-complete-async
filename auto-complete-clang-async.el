@@ -266,7 +266,7 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
            (setq candidates (nreverse candidates))
            (setq ac-clang-template-candidates candidates)
            (setq ac-clang-template-start-point (point))
-           (ac-complete-template)
+           (ac-complete-clang-template)
 
            (unless (cdr candidates) ;; unless length > 1
              (message (replace-regexp-in-string "\n" "   ;    " help))))
@@ -377,7 +377,7 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
 
 
 ;; This source shall only be used internally.
-(ac-define-source ac-clang-template
+(ac-define-source clang-template
   '((candidates . ac-clang-template-candidate)
     (prefix . ac-clang-template-prefix)
     (requires . 0)
