@@ -407,7 +407,11 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
 (defun ac-clang-send-source-code (proc)
   (save-restriction
     (widen)
-    (process-send-string proc (format "source_length:%d\n" (buffer-size)))
+    (process-send-string 
+     proc (format "source_length:%d\n" 
+                  (length (string-as-unibyte   ; fix non-ascii character problem
+                           (buffer-substring-no-properties (point-min) (point-max)))
+                          )))
     (process-send-string proc (buffer-substring-no-properties (point-min) (point-max)))
     (process-send-string proc "\n\n")))
 
