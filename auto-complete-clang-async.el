@@ -453,8 +453,9 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
   (ac-clang-send-cmdline-args ac-clang-completion-process))
 
 (defun ac-clang-send-shutdown-command (proc)
-  (if proc  ; make sure that the completion process is not dead before terminating it
-      (process-send-string proc "SHUTDOWN\n")))
+  (if (eq (process-status "clang-complete") 'run)
+    (process-send-string proc "SHUTDOWN\n"))
+  )
 
 
 (defun ac-clang-append-process-output-to-process-buffer (process output)
@@ -564,7 +565,6 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
 
 (defun ac-clang-shutdown-process ()
   (if ac-clang-completion-process
-      (set-process-buffer ac-clang-completion-process nil)
       (ac-clang-send-shutdown-command ac-clang-completion-process)))
 
 (defun ac-clang-reparse-buffer ()
