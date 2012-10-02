@@ -34,6 +34,7 @@
 
 
 (provide 'auto-complete-clang-async)
+(require 'cl)
 (require 'auto-complete)
 (require 'flymake)
 
