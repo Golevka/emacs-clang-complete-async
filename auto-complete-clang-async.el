@@ -451,7 +451,9 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
 
 (defun ac-clang-update-cmdlineargs ()
   (interactive)
-  (ac-clang-send-cmdline-args ac-clang-completion-process))
+  (if (listp ac-clang-cflags)
+         (ac-clang-send-cmdline-args ac-clang-completion-process)
+         (message "`ac-clang-cflags' should be a list of strings")))
 
 (defun ac-clang-send-shutdown-command (proc)
   (if (eq (process-status "clang-complete") 'run)
