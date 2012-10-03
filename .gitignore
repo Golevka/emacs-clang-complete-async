@@ -1,0 +1,4 @@
+#build output
+src/dep/
+src/obj/
+clang-complete
