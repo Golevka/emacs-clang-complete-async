@@ -16,7 +16,7 @@ client-server fashion.
 An experimental feature is added to this branch --- running
 =ac-clang-syntax-check= to highlight errornous lines in your souce code.
 
-[[https://github.com/Golevka/emacs-clang-complete-async/raw/diag/screenshots/syntax_check.png]]
+[[https://github.com/Golevka/emacs-clang-complete-async/raw/master/screenshots/syntax_check.png]]
 
 
 * Setup
