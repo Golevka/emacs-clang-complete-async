@@ -17,6 +17,7 @@ __command_dispatch_table[] =
     {"COMPLETION",   completion_doCompletion},
     {"SOURCEFILE",   completion_doSourcefile},
     {"CMDLINEARGS",  completion_doCmdlineArgs},
+    {"FILECHANGED",  completion_doFileChanged},
     {"SYNTAXCHECK",  completion_doSyntaxCheck},
     {"REPARSE",      completion_doReparse},
     {"SHUTDOWN",     completion_doShutdown}

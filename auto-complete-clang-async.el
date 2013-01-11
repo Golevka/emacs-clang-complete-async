@@ -1,4 +1,4 @@
-;;; auto-complete-clang-async.el --- Auto Completion source for clang for GNU Emacs
+;;; auto-complete-clang-async-once.el --- Auto Completion source for clang for GNU Emacs
 
 ;; Copyright (C) 2010  Brian Jiang
 ;; Copyright (C) 2012  Taylan Ulrich Bayirli/Kammer
@@ -6,6 +6,7 @@
 ;; Authors: Brian Jiang <brianjcj@gmail.com>
 ;;          Golevka(?) [https://github.com/Golevka]
 ;;          Taylan Ulrich Bayirli/Kammer <taylanbayirli@gmail.com>
+;;          Cjacker <cjacker@gmail.com>
 ;;          Many others
 ;; Keywords: completion, convenience
 ;; Version: 0
@@ -29,7 +30,7 @@
 ;; Auto Completion source for clang.
 ;; Uses a "completion server" process to utilize libclang.
 ;; Also provides flymake syntax checking.
-
+;; Cjacker: Made clang-complete server only run once for one emacs instance, and change the source file internally
 ;;; Code:
 
 
@@ -397,9 +398,11 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
 (defvar ac-clang-completion-process nil)
 (defvar ac-clang-saved-prefix "")
 
-(make-variable-buffer-local 'ac-clang-status)
-(make-variable-buffer-local 'ac-clang-current-candidate)
-(make-variable-buffer-local 'ac-clang-completion-process)
+(defvar current-clang-file "")
+
+;;(make-variable-buffer-local 'ac-clang-status)
+;;(make-variable-buffer-local 'ac-clang-current-candidate)
+;;(make-variable-buffer-local 'ac-clang-completion-process)
 
 ;;;
 ;;; Functions to speak with the clang-complete process
@@ -424,6 +427,8 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
     (process-send-string proc "REPARSE\n\n")))
 
 (defun ac-clang-send-completion-request (proc)
+  (if (not (string= current-clang-file (buffer-file-name)))
+      (ac-clang-filechanged))
   (save-restriction
     (widen)
     (process-send-string proc "COMPLETION\n")
@@ -454,6 +459,27 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
   (if (listp ac-clang-cflags)
          (ac-clang-send-cmdline-args ac-clang-completion-process)
          (message "`ac-clang-cflags' should be a list of strings")))
+
+(defun ac-clang-send-filechanged (proc)
+  ;; send message head and num_args
+  (process-send-string proc "FILECHANGED\n")
+  (process-send-string
+   proc (format "filename:%s\n" (buffer-file-name)))
+  (process-send-string
+   proc (format "num_args:%d\n" (length (ac-clang-build-complete-args))))
+  ;; send arguments
+  (mapc
+   (lambda (arg)
+     (process-send-string proc (format "%s " arg)))
+   (ac-clang-build-complete-args))
+  (process-send-string proc "\n"))
+
+(defun ac-clang-filechanged ()
+  (interactive)
+  (if (not (string= current-clang-file (buffer-file-name)))
+    (setq current-clang-file (buffer-file-name)))
+  (ac-clang-send-filechanged ac-clang-completion-process))
+
 
 (defun ac-clang-send-shutdown-command (proc)
   (if (eq (process-status "clang-complete") 'run)
@@ -501,8 +527,8 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
   (case ac-clang-status
     (idle
      ;; (message "ac-clang-candidate triggered - fetching candidates...")
-     (setq ac-clang-saved-prefix ac-prefix)
 
+     (setq ac-clang-saved-prefix ac-prefix)
      ;; NOTE: although auto-complete would filter the result for us, but when there's
      ;;       a HUGE number of candidates avaliable it would cause auto-complete to
      ;;       block. So we filter it uncompletely here, then let auto-complete filter
@@ -582,20 +608,29 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
     (setq ac-clang-status 'preempted)))
 
 (defun ac-clang-launch-completion-process ()
+   (interactive)
+   (if ac-clang-completion-process
+       (ac-clang-filechanged)
+       (ac-clang-launch-completion-process-internal)))
+
+(defun ac-clang-launch-completion-process-internal ()
+   (interactive)
   (setq ac-clang-completion-process
         (let ((process-connection-type nil))
           (apply 'start-process
                  "clang-complete" "*clang-complete*"
                  ac-clang-complete-executable
                  (append (ac-clang-build-complete-args)
-                         (list (buffer-file-name))))))
+                         (list (buffer-file-name)))
+)))
 
   (set-process-filter ac-clang-completion-process 'ac-clang-filter-output)
   (set-process-query-on-exit-flag ac-clang-completion-process nil)
   ;; Pre-parse source code.
   (ac-clang-send-reparse-request ac-clang-completion-process)
 
-  (add-hook 'kill-buffer-hook 'ac-clang-shutdown-process nil t)
+;;  (add-hook 'kill-buffer-hook 'ac-clang-shutdown-process nil t)
+  (add-hook 'kill-emacs-hook 'ac-clang-shutdown-process nil t)
   (add-hook 'before-save-hook 'ac-clang-reparse-buffer)
 
   (local-set-key (kbd ".") 'ac-clang-async-preemptive)

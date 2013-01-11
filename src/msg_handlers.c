@@ -146,6 +146,50 @@ void completion_doCmdlineArgs(completion_Session *session, FILE *fp)
     completion_reparseTranslationUnit(session);  /* dump PCH for acceleration */
 }
 
+/* Update command line arguments and source files passing to clang translation unit. Format
+   of the coming FILECHANGED message is as follows:
+       filename: [#new filename#]  
+       num_args: [#n_args#]
+       arg1 arg2 ... (there should be n_args items here)
+*/
+void completion_doFileChanged(completion_Session *session, FILE *fp)
+{
+    int i_arg = 0;
+    char arg[LINE_MAX];
+
+    /* destroy command line args, and we will rebuild it later */
+    completion_freeCmdlineArgs(session);
+
+    char filename[LINE_MAX];
+    fscanf(fp, "filename:%s", filename); __skip_the_rest(fp);
+    session->src_filename = strdup(filename);
+    session->src_length = 0;      /* we haven't read any source code yet. */
+    session->buffer_capacity = INITIAL_SRC_BUFFER_SIZE;
+    free(session->src_buffer);
+    session->src_buffer = (char*)calloc(sizeof(char), session->buffer_capacity);
+
+    /* get number of arguments */
+    fscanf(fp, "num_args:%d", &(session->num_args)); __skip_the_rest(fp);
+    session->cmdline_args = (char**)calloc(sizeof(char*), session->num_args);
+
+    /* rebuild command line arguments vector according to the message */
+    for ( ; i_arg < session->num_args; i_arg++)
+    {
+        /* fetch an argument from message */
+        fscanf(fp, "%s", arg);
+
+        /* and add it to cmdline_args */
+        session->cmdline_args[i_arg] = (char*)calloc(sizeof(char), strlen(arg) + 1);
+        strcpy(session->cmdline_args[i_arg], arg);
+    }
+    
+    /* we have to rebuild our translation units to make these cmdline args changes 
+       take place */
+    clang_disposeTranslationUnit(session->cx_tu);
+    completion_parseTranslationUnit(session);
+    completion_reparseTranslationUnit(session);  /* dump PCH for acceleration */
+}
+
 /* Handle syntax checking request, message format:
        source_length: [#src_length#]
        <# SOURCE CODE #>

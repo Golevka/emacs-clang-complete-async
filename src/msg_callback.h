@@ -46,6 +46,7 @@ void completion_AcceptRequest(completion_Session *session, FILE *fp);
 void completion_doCompletion(completion_Session *session, FILE *fp);   /* COMPLETION */
 void completion_doSourcefile(completion_Session *session, FILE *fp);   /* SOURCEFILE */
 void completion_doCmdlineArgs(completion_Session *session, FILE *fp);  /* CMDLINEARGS */
+void completion_doFileChanged(completion_Session *session, FILE *fp);  /* FILECHANGED */
 void completion_doReparse(completion_Session *session, FILE *fp);      /* REPARSE */
 void completion_doSyntaxCheck(completion_Session *session, FILE *fp);  /* SYNTAXCHECK */
 void completion_doShutdown(completion_Session *session, FILE *fp);     /* SHUTDOWN */
