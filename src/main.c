@@ -25,6 +25,12 @@ void __dump_session(const completion_Session *session, FILE *fp)
 int main(int argc, char *argv[])
 {
     completion_Session session;
+
+    if (argc < 2) {
+        printf("Source file name must be specified as the last commandline argument\n");
+        exit(-1);
+    }
+    
     startup_completionSession(argc, argv, &session);
 
     for ( ; ; ) {
