@@ -574,12 +574,25 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
   (if ac-clang-completion-process
       (ac-clang-send-reparse-request ac-clang-completion-process)))
 
+
+(setq ac-clang-async-do-autocompletion-automatically nil)
+
+(defun ac-clang-async-autocomplete-autotrigger ()
+  (interactive)
+  (if ac-clang-async-do-autocompletion-automatically
+      (ac-clang-async-preemptive)
+      (self-insert-command 1)))
+
+
+
 (defun ac-clang-async-preemptive ()
   (interactive)
   (self-insert-command 1)
   (if (eq ac-clang-status 'idle)
       (ac-start)
     (setq ac-clang-status 'preempted)))
+
+
 
 (defun ac-clang-launch-completion-process ()
   (setq ac-clang-completion-process
@@ -598,9 +611,9 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
   (add-hook 'kill-buffer-hook 'ac-clang-shutdown-process nil t)
   (add-hook 'before-save-hook 'ac-clang-reparse-buffer)
 
-  (local-set-key (kbd ".") 'ac-clang-async-preemptive)
-  (local-set-key (kbd ":") 'ac-clang-async-preemptive)
-  (local-set-key (kbd ">") 'ac-clang-async-preemptive))
+  (local-set-key (kbd ".") 'ac-clang-async-autocomplete-autotrigger)
+  (local-set-key (kbd ":") 'ac-clang-async-autocomplete-autotrigger)
+  (local-set-key (kbd ">") 'ac-clang-async-autocomplete-autotrigger))
 
 
 (ac-define-source clang-async
