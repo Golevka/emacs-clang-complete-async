@@ -79,6 +79,9 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
   "The prefix header to pass to the Clang executable.")
 (make-variable-buffer-local 'ac-clang-prefix-header)
 
+(defvar ac-clang-async-do-autocompletion-automatically t
+  "If autocompletion is automatically triggered when you type ., -> or ::")
+
 (defun ac-clang-set-prefix-header (prefix-header)
   "Set `ac-clang-prefix-header' interactively."
   (interactive
@@ -575,7 +578,6 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
       (ac-clang-send-reparse-request ac-clang-completion-process)))
 
 
-(setq ac-clang-async-do-autocompletion-automatically nil)
 
 (defun ac-clang-async-autocomplete-autotrigger ()
   (interactive)
