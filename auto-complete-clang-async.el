@@ -594,16 +594,19 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
       (ac-start)
     (setq ac-clang-status 'preempted)))
 
-
-
 (defun ac-clang-launch-completion-process ()
+  (let ((filename (buffer-file-name)))
+	(if filename
+		(ac-clang-launch-completion-process-with-file filename))))
+
+(defun ac-clang-launch-completion-process-with-file (filename)
   (setq ac-clang-completion-process
         (let ((process-connection-type nil))
           (apply 'start-process
                  "clang-complete" "*clang-complete*"
                  ac-clang-complete-executable
                  (append (ac-clang-build-complete-args)
-                         (list (buffer-file-name))))))
+                         (list filename)))))
 
   (set-process-filter ac-clang-completion-process 'ac-clang-filter-output)
   (set-process-query-on-exit-flag ac-clang-completion-process nil)
