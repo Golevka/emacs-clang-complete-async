@@ -420,11 +420,12 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
     (process-send-string proc "\n\n")))
 
 (defun ac-clang-send-reparse-request (proc)
-  (save-restriction
-    (widen)
-    (process-send-string proc "SOURCEFILE\n")
-    (ac-clang-send-source-code proc)
-    (process-send-string proc "REPARSE\n\n")))
+  (if (eq (process-status "clang-complete") 'run)
+      (save-restriction
+	(widen)
+	(process-send-string proc "SOURCEFILE\n")
+	(ac-clang-send-source-code proc)
+	(process-send-string proc "REPARSE\n\n"))))
 
 (defun ac-clang-send-completion-request (proc)
   (if (not (string= current-clang-file (buffer-file-name)))
