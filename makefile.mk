@@ -7,6 +7,12 @@ vpath %.d $(DEPENDENCY_PATH)
 vpath %.o $(OBJECT_PATH)
 
 
+prefix			= /usr/local
+exec_prefix 	= ${prefix}
+bindir			= ${exec_prefix}/bin
+PROGRAM_EXEC	= $(bindir)/$(PROGRAM_NAME)
+
+
 ## default .o and .dep path and program name
 OBJECT_PATH     ?= obj
 DEPENDENCY_PATH ?= dep
@@ -48,6 +54,12 @@ $(DEPENDENCY_PATH)/%.d: %.c
 	rm -f $@.$$$$
 
 
-.PHONY: clean build
+.PHONY: clean build install uninstall
 clean:
 	rm -f $(object-list) $(dependency-list)
+
+install: $(PROGRAM_NAME)
+	cp -f $(PROGRAM_NAME) $(bindir)
+
+uninstall: clean
+	rm -f $(PROGRAM_EXEC)
