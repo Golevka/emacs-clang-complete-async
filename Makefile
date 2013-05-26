@@ -4,9 +4,10 @@ DEPENDENCY_PATH := ./src/dep
 OBJECT_PATH     := ./src/obj
 
 PROGRAM_NAME    := clang-complete
+LLVM_CONFIG     := llvm-config
 
-LDLIBS := $(shell llvm-config --ldflags) $(shell llvm-config --libs all) -lstdc++ -lclang
-CFLAGS += $(shell llvm-config --cflags) -Wall -Wextra -pedantic -O3
+LDLIBS := $(shell $(LLVM_CONFIG) --ldflags) $(shell $(LLVM_CONFIG) --libs all) -lstdc++ -lclang
+CFLAGS += $(shell $(LLVM_CONFIG) --cflags) -Wall -Wextra -pedantic -O3
 
 
 include makefile.mk
