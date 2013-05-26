@@ -64,8 +64,9 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
   (ac-clang-update-cmdlineargs))
 
 (defun ac-clang-set-cflags-from-shell-command ()
-  "Set `ac-clang-cflags' to a shell command's output."
-  "set new cflags for ac-clang from shell command output"
+  "Set `ac-clang-cflags' to a shell command's output.
+
+set new cflags for ac-clang from shell command output"
   (interactive)
   (setq ac-clang-cflags
         (split-string
@@ -134,7 +135,7 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
 (defun ac-clang-handle-error (res args)
   (goto-char (point-min))
   (let* ((buf (get-buffer-create ac-clang-error-buffer-name))
-         (cmd (concat ac-clang-executable " " (mapconcat 'identity args " ")))
+         (cmd (concat ac-clang-complete-executable " " (mapconcat 'identity args " ")))
          (pattern (format ac-clang-completion-pattern ""))
          (err (if (re-search-forward pattern nil t)
                   (buffer-substring-no-properties (point-min)
@@ -158,7 +159,7 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
         res)
     (with-current-buffer buf (erase-buffer))
     (setq res (apply 'call-process-region (point-min) (point-max)
-                     ac-clang-executable nil buf nil args))
+                     ac-clang-complete-executable nil buf nil args))
     (with-current-buffer buf
       (unless (eq 0 res)
         (ac-clang-handle-error res args))
@@ -411,8 +412,8 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
 (defun ac-clang-send-source-code (proc)
   (save-restriction
     (widen)
-    (process-send-string 
-     proc (format "source_length:%d\n" 
+    (process-send-string
+     proc (format "source_length:%d\n"
                   (length (string-as-unibyte   ; fix non-ascii character problem
                            (buffer-substring-no-properties (point-min) (point-max)))
                           )))
@@ -422,10 +423,10 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
 (defun ac-clang-send-reparse-request (proc)
   (if (eq (process-status proc) 'run)
       (save-restriction
-	(widen)
-	(process-send-string proc "SOURCEFILE\n")
-	(ac-clang-send-source-code proc)
-	(process-send-string proc "REPARSE\n\n"))))
+    (widen)
+    (process-send-string proc "SOURCEFILE\n")
+    (ac-clang-send-source-code proc)
+    (process-send-string proc "REPARSE\n\n"))))
 
 (defun ac-clang-send-completion-request (proc)
   (save-restriction
@@ -491,7 +492,7 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
          (setq ac-clang-status 'idle)
          (ac-start)
          (ac-update))
-        
+
         (otherwise
          (setq ac-clang-current-candidate (ac-clang-parse-completion-results proc))
          ;; (message "ac-clang results arrived")
@@ -597,8 +598,8 @@ This variable will typically contain include paths, e.g., (\"-I~/MyProject\" \"-
 
 (defun ac-clang-launch-completion-process ()
   (let ((filename (buffer-file-name)))
-	(if filename
-		(ac-clang-launch-completion-process-with-file filename))))
+    (if filename
+        (ac-clang-launch-completion-process-with-file filename))))
 
 (defun ac-clang-launch-completion-process-with-file (filename)
   (setq ac-clang-completion-process
