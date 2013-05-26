@@ -21,11 +21,15 @@ An experimental feature is added to this branch --- running
 
 * Setup
 
-Compile the server part (clang-complete binary) first by executing =make=,
-then copy auto-complete-clang-async.el and the previously compiled
+Compile the server part (clang-complete binary) first, by executing
+=make=. The build process uses =llvm-config= to determine the location of
+libclang and the appropriate compile flags to use. If =llvm-config= is not in
+your path or has a different name, you can pass =make= an =LLVM_CONFIG=
+argument, e.g.  =make LLVM_CONFIG=llvm-config-3.4=.
+
+Copy auto-complete-clang-async.el and the previously compiled
 clang-complete executable to ~/.emacs.d/, and add the following code to your
 .emacs file.
-
 
 #+BEGIN_SRC elisp
 (require 'auto-complete-clang-async)
