@@ -7,7 +7,7 @@ PROGRAM_NAME    := clang-complete
 LLVM_CONFIG     := llvm-config
 
 LDLIBS := $(shell $(LLVM_CONFIG) --ldflags) -lclang
-CFLAGS += $(shell $(LLVM_CONFIG) --cflags) -Wall -Wextra -pedantic -O3
+CFLAGS += -std=c99 $(shell $(LLVM_CONFIG) --cflags) -Wall -Wextra -pedantic -O3
 
 
 include makefile.mk
