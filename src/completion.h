@@ -3,6 +3,7 @@
 
 
 #include <clang-c/Index.h>
+#include <stdio.h>
 
 
 typedef struct __completion_Session_struct
